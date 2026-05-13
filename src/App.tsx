@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navbar, Hero, TradingSection, EducationSection, GamingSection, Footer } from './components/Sections';
+import { Navbar, Hero, TradingSection, EducationSection, TradingAISection, GamingSection, Footer } from './components/Sections';
 
 export default function App() {
   return (
@@ -9,6 +9,7 @@ export default function App() {
         <Hero />
         <TradingSection />
         <EducationSection />
+        <TradingAISection />
         <GamingSection />
       </main>
       <Footer />

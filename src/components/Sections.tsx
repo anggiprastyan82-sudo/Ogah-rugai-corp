@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { TrendingUp, Gamepad2, GraduationCap, MapPin, Signal, ArrowUpRight } from 'lucide-react';
+import { TrendingUp, Gamepad2, GraduationCap, MapPin, ArrowUpRight, Search, Activity, Zap, ShieldCheck, Gauge, Target, Users, BarChart3, Database, Layers, Eye } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export const Navbar = () => {
@@ -20,6 +20,7 @@ export const Navbar = () => {
       <div className="hidden md:flex items-center gap-10 text-[10px] font-bold tracking-[0.2em] text-[#666]">
         <a href="#trading" className="hover:text-brand transition-colors uppercase">Trading</a>
         <a href="#education" className="hover:text-brand transition-colors uppercase">Edukasi</a>
+        <a href="#ai-terminal" className="hover:text-brand transition-colors uppercase">AI Terminal</a>
         <a href="#gaming" className="hover:text-brand transition-colors uppercase">Gaming</a>
       </div>
 
@@ -190,7 +191,7 @@ export const EducationSection = () => {
   ];
 
   return (
-    <section id="education" className="py-32 px-8 max-w-7xl mx-auto">
+    <section id="education" className="py-32 px-8 max-w-7xl mx-auto border-b border-border-subtle">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
         <div className="lg:col-span-4">
           <span className="mono-tag text-brand mb-4 block">// LEARNING CENTER</span>
@@ -221,6 +222,308 @@ export const EducationSection = () => {
               <ArrowUpRight className="text-[#333] group-hover:text-brand transition-all mt-4 md:mt-0" />
             </motion.div>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const TradingViewWidget = ({ symbol, interval }: { symbol: string; interval: string }) => {
+  return (
+    <div className="w-full h-full bg-[#050505]">
+      <iframe
+        src={`https://s.tradingview.com/widgetembed/?symbol=IDX:${symbol}&interval=${interval}&theme=dark`}
+        width="100%"
+        height="100%"
+        style={{ border: "none" }}
+        title="TradingView Chart"
+      />
+    </div>
+  );
+};
+
+export const TradingAISection = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeSymbol, setActiveSymbol] = useState("BBRI");
+  const [interval, setIntervalVal] = useState("15");
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [livePrice, setLivePrice] = useState(4820);
+
+  const basePrices: Record<string, number> = {
+    "BBRI": 4820,
+    "BBCA": 10025,
+    "TLKM": 3880,
+    "GOTO": 64,
+    "MDKA": 2480,
+    "ASII": 5250,
+    "BMRI": 6750,
+    "ADRO": 2720,
+    "ARKO": 8200,
+    "AMMN": 11200,
+    "BBNI": 5350,
+    "ANTM": 1520,
+    "BRMS": 165,
+    "UNVR": 2540
+  };
+
+  useEffect(() => {
+    const ticker = activeSymbol.toUpperCase();
+    const initial = basePrices[ticker] || 1500;
+    setLivePrice(initial);
+
+    const interval = setInterval(() => {
+      setLivePrice(prev => {
+        const volatility = prev * 0.0002;
+        const change = (Math.random() - 0.5) * volatility;
+        return Number((prev + change).toFixed(2));
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [activeSymbol]);
+
+  const getStrategy = (price: number) => {
+    // Breakout logic
+    const boEntry = Math.floor(price * 1.005);
+    const boTP = Math.floor(boEntry * 1.035);
+    const boSL = Math.floor(boEntry * 0.985);
+
+    // Weakness logic
+    const bowEntry = Math.floor(price * 0.992);
+    const bowTP = Math.floor(bowEntry * 1.04);
+    const bowSL = Math.floor(bowEntry * 0.98);
+
+    return {
+      breakout: { entry: boEntry, tp: boTP, sl: boSL },
+      weakness: { entry: bowEntry, tp: bowTP, sl: bowSL }
+    };
+  };
+
+  const strategy = getStrategy(livePrice);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery) return;
+    setIsSyncing(true);
+    setTimeout(() => {
+      setActiveSymbol(searchQuery.toUpperCase());
+      setIsSyncing(false);
+      setSearchQuery("");
+    }, 800);
+  };
+
+  return (
+    <section id="ai-terminal" className="py-24 bg-black relative">
+      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand/20 to-transparent" />
+      
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-12">
+          <div className="space-y-4">
+             <div className="flex items-center gap-3">
+               <span className="w-2 h-2 bg-brand rounded-full animate-pulse shadow-[0_0_10px_rgba(0,255,163,0.5)]" />
+               <span className="text-[10px] font-black text-brand tracking-[0.3em] uppercase">AI_Terminal_v5.0_Activated</span>
+             </div>
+             <h2 className="text-4xl md:text-7xl font-black text-white italic tracking-tighter uppercase leading-[0.85]">
+               CORE <span className="text-brand">TERMINAL.</span>
+             </h2>
+             <div className="flex items-center gap-4 bg-white/5 px-4 py-2 rounded-xl border border-white/10 w-fit">
+                <span className="text-[10px] font-black text-[#555] uppercase tracking-widest">Live_Market_Price</span>
+                <span className="text-xl font-mono font-black text-brand tracking-tighter">IDR {livePrice.toLocaleString('id-ID')}</span>
+                <div className={cn(
+                  "w-2 h-2 rounded-full",
+                  Math.random() > 0.5 ? "bg-brand animate-pulse" : "bg-red-500 animate-pulse"
+                )} />
+             </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+            <div className="flex bg-[#111] p-1 rounded-xl border border-white/5 h-[54px] items-center px-2">
+              {["5", "15", "60"].map((tf) => (
+                <button 
+                  key={tf}
+                  onClick={() => setIntervalVal(tf)}
+                  className={cn(
+                    "px-4 py-2 text-[10px] font-black rounded-lg transition-all",
+                    interval === tf ? "bg-brand text-black" : "text-[#444] hover:text-[#888]"
+                  )}
+                >
+                  {tf === "60" ? "1H" : `${tf}M`}
+                </button>
+              ))}
+            </div>
+            
+            <form onSubmit={handleSearch} className="flex gap-2 flex-1 md:w-80">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#444]" size={18} />
+                <input 
+                  type="text"
+                  placeholder="Ticker (e.g. BBCA, GOTO)"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#111] border border-white/5 rounded-xl py-4 pl-12 pr-4 text-sm font-bold text-white focus:border-brand focus:outline-none transition-all uppercase"
+                />
+              </div>
+              <button className="bg-brand text-black font-black px-6 rounded-xl hover:shadow-[0_0_20px_rgba(0,255,163,0.3)] transition-all h-[54px] uppercase text-xs">
+                {isSyncing ? "SYNC" : "RUN"}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+          <div className="lg:col-span-12">
+             <div className="h-[500px] md:h-[700px] bg-[#050505] rounded-3xl border border-white/10 overflow-hidden shadow-2xl relative group">
+                <div className="absolute inset-x-0 bottom-0 top-[auto] h-10 bg-black z-10 pointer-events-none" />
+                <div className="absolute top-6 right-6 z-20 flex gap-4">
+                   <div className="bg-black/60 backdrop-blur px-4 py-2 rounded-lg border border-white/10 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-brand rounded-full animate-ping" />
+                      <span className="text-[9px] font-black text-brand tracking-widest uppercase">Live_Feed: {activeSymbol} / {interval === "60" ? "1H" : `${interval}M`}</span>
+                   </div>
+                </div>
+                
+                <TradingViewWidget symbol={activeSymbol} interval={interval} />
+             </div>
+
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div className="sophisticated-card bg-gradient-to-br from-brand/10 to-transparent border-brand/20 p-6">
+                   <div className="flex justify-between items-center mb-6">
+                      <div className="flex items-center gap-2">
+                         <div className="w-2 h-2 bg-brand rounded-full animate-pulse" />
+                         <span className="text-[10px] font-black text-brand tracking-widest uppercase">Strategy: Buy_On_Breakout</span>
+                      </div>
+                      <span className="text-[10px] font-black text-white italic">PROBABILITY: 78%</span>
+                   </div>
+                   <div className="grid grid-cols-3 gap-4">
+                      <div className="bg-black/40 p-4 rounded-xl border border-white/5">
+                         <span className="text-[8px] font-bold text-[#444] uppercase block mb-1">Entry_High</span>
+                         <span className="text-sm font-black text-brand font-mono">{strategy.breakout.entry.toLocaleString('id-ID')}</span>
+                      </div>
+                      <div className="bg-black/40 p-4 rounded-xl border border-white/5">
+                         <span className="text-[8px] font-bold text-[#444] uppercase block mb-1">Target_Profit</span>
+                         <span className="text-sm font-black text-white font-mono">{strategy.breakout.tp.toLocaleString('id-ID')}</span>
+                      </div>
+                      <div className="bg-black/40 p-4 rounded-xl border border-white/5">
+                         <span className="text-[8px] font-bold text-[#444] uppercase block mb-1">Stop_Loss</span>
+                         <span className="text-sm font-black text-red-500 font-mono">{strategy.breakout.sl.toLocaleString('id-ID')}</span>
+                      </div>
+                   </div>
+                   <p className="mt-4 text-[9px] text-[#666] font-medium leading-relaxed italic border-l border-brand/30 pl-3">
+                      "Eksekusi saat harga bertahan di atas level {strategy.breakout.entry.toLocaleString('id-ID')} dengan volume signifikan."
+                   </p>
+                </div>
+
+                <div className="sophisticated-card bg-gradient-to-br from-cyan-400/10 to-transparent border-cyan-400/20 p-6">
+                   <div className="flex justify-between items-center mb-6">
+                      <div className="flex items-center gap-2">
+                         <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+                         <span className="text-[10px] font-black text-cyan-400 tracking-widest uppercase">Strategy: Buy_On_Weakness</span>
+                      </div>
+                      <span className="text-[10px] font-black text-white italic">PROBABILITY: 64%</span>
+                   </div>
+                   <div className="grid grid-cols-3 gap-4">
+                      <div className="bg-black/40 p-4 rounded-xl border border-white/5">
+                         <span className="text-[8px] font-bold text-[#444] uppercase block mb-1">Entry_Low</span>
+                         <span className="text-sm font-black text-cyan-400 font-mono">{strategy.weakness.entry.toLocaleString('id-ID')}</span>
+                      </div>
+                      <div className="bg-black/40 p-4 rounded-xl border border-white/5">
+                         <span className="text-[8px] font-bold text-[#444] uppercase block mb-1">Target_Profit</span>
+                         <span className="text-sm font-black text-white font-mono">{strategy.weakness.tp.toLocaleString('id-ID')}</span>
+                      </div>
+                      <div className="bg-black/40 p-4 rounded-xl border border-white/5">
+                         <span className="text-[8px] font-bold text-[#444] uppercase block mb-1">Stop_Loss</span>
+                         <span className="text-sm font-black text-red-500 font-mono">{strategy.weakness.sl.toLocaleString('id-ID')}</span>
+                      </div>
+                   </div>
+                   <p className="mt-4 text-[9px] text-[#666] font-medium leading-relaxed italic border-l border-cyan-400/30 pl-3">
+                      "Antri di area support {strategy.weakness.entry.toLocaleString('id-ID')} untuk mendapatkan harga terbaik dengan risiko minimal."
+                   </p>
+                </div>
+             </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+           {/* Trend analysis */}
+           <div className="sophisticated-card bg-[#111] p-6 border-white/5 group hover:border-brand/30 transition-all">
+              <div className="flex items-center gap-2 mb-6 text-[#444] group-hover:text-brand transition-colors">
+                <Gauge size={16} />
+                <span className="text-[10px] font-black tracking-widest uppercase">Market_Trend</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                 <div className="flex justify-between items-end">
+                    <span className="text-3xl font-black text-white italic tracking-tighter uppercase">Bullish</span>
+                    <span className="text-brand text-[10px] font-black animate-pulse uppercase">Strong 84%</span>
+                 </div>
+                 <div className="h-1 bg-white/5 rounded-full mt-4 overflow-hidden">
+                    <div className="h-full bg-brand" style={{ width: "84%" }} />
+                 </div>
+              </div>
+           </div>
+
+           {/* Momentum analysis */}
+           <div className="sophisticated-card bg-[#111] p-6 border-white/5">
+              <div className="flex items-center gap-2 mb-6 text-[#444]">
+                <Zap size={16} />
+                <span className="text-[10px] font-black tracking-widest uppercase">Momentum_State</span>
+              </div>
+              <div className="space-y-4">
+                 <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-[#666] uppercase">RSI_14</span>
+                    <span className="text-xs font-black text-cyan-400">64.28</span>
+                 </div>
+                 <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-[#666] uppercase">VWAP_POS</span>
+                    <span className="text-xs font-black text-brand">ABOVE</span>
+                 </div>
+                 <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-[#666] uppercase">EMA_9_20</span>
+                    <span className="text-xs font-black text-brand">GOLDEN_CROSS</span>
+                 </div>
+              </div>
+           </div>
+
+           {/* SMC Context */}
+           <div className="sophisticated-card bg-[#111] p-6 border-white/5">
+              <div className="flex items-center gap-2 mb-6 text-[#444]">
+                <Layers size={16} />
+                <span className="text-[10px] font-black tracking-widest uppercase">SMC_Architecture</span>
+              </div>
+              <div className="space-y-3">
+                 <div className="flex items-center gap-3">
+                    <div className="w-1 h-8 bg-brand rounded-full" />
+                    <div>
+                       <div className="text-[9px] font-black text-[#555] uppercase">Structure</div>
+                       <div className="text-xs font-black text-white uppercase italic">MS_Break: BOS (H1)</div>
+                    </div>
+                 </div>
+                 <div className="flex items-center gap-3 opacity-60">
+                    <div className="w-1 h-8 bg-[#333] rounded-full" />
+                    <div>
+                       <div className="text-[9px] font-black text-[#555] uppercase">Supply_Zone</div>
+                       <div className="text-xs font-black text-white uppercase italic tracking-tighter">LIQUIDITY_UNMITIGATED</div>
+                    </div>
+                 </div>
+              </div>
+           </div>
+
+           {/* Volume Analysis */}
+           <div className="sophisticated-card bg-brand p-6 border-none text-black">
+              <div className="flex items-center gap-2 mb-6 opacity-60">
+                <BarChart3 size={16} />
+                <span className="text-[10px] font-black tracking-widest uppercase">Smart_Money_Flow</span>
+              </div>
+              <div className="flex flex-col h-full justify-between">
+                 <div>
+                    <h4 className="text-xl font-black italic uppercase leading-none mb-1">Akumulasi</h4>
+                    <p className="text-[9px] font-bold uppercase tracking-tight opacity-70">Major institution buying detected via broker feed</p>
+                 </div>
+                 <div className="flex gap-1 items-end h-16 mt-4">
+                    {[40, 70, 45, 90, 65, 100, 80].map((h, i) => (
+                      <div key={i} className="flex-1 bg-black/10 rounded-sm" style={{ height: `${h}%` }} />
+                    ))}
+                 </div>
+              </div>
+           </div>
         </div>
       </div>
     </section>
