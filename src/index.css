@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  /* Theme Colors */
+  --color-brand: #E2FF00;
+  --color-bg-main: #0A0A0A;
+  --color-bg-card: #111111;
+  --color-border-subtle: #222222;
+  --color-border-active: #333333;
+}
+
+@layer base {
+  body {
+    @apply bg-bg-main text-[#F5F5F5] antialiased;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02";
+  }
+}
+
+.sophisticated-card {
+  @apply bg-bg-card border border-border-subtle rounded-2xl p-6 transition-all duration-300 hover:border-border-active;
+}
+
+.heading-massive {
+  @apply text-5xl md:text-7xl font-black italic tracking-tighter leading-[0.9] uppercase;
+}
+
+.mono-tag {
+  @apply text-[10px] font-mono text-[#666] uppercase tracking-[0.2em];
+}
+
+.btn-neon {
+  @apply bg-brand text-black font-black text-xs px-6 py-3 rounded-lg uppercase tracking-widest transition-transform active:scale-95;
+}
+
