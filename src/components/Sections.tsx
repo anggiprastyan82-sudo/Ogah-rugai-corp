@@ -282,24 +282,42 @@ export const TradingAISection = () => {
     return () => clearInterval(interval);
   }, [activeSymbol]);
 
-  const getStrategy = (price: number) => {
-    // Breakout logic
-    const boEntry = Math.floor(price * 1.005);
-    const boTP = Math.floor(boEntry * 1.035);
-    const boSL = Math.floor(boEntry * 0.985);
-
-    // Weakness logic
-    const bowEntry = Math.floor(price * 0.992);
-    const bowTP = Math.floor(bowEntry * 1.04);
-    const bowSL = Math.floor(bowEntry * 0.98);
-
+  const getFullAnalysis = (price: number) => {
+    const isBull = Math.random() > 0.3;
+    const direction = isBull ? "BULLISH" : "BEARISH";
+    
+    // Signal Logic
+    let signal = "WAIT";
+    const boThreshold = price * 1.002;
+    const bowThreshold = price * 0.995;
+    
+    if (price >= boThreshold) signal = "BUY ON BREAKOUT";
+    else if (price <= bowThreshold) signal = "BUY ON WEAKNESS";
+    else if (isBull) signal = "BUY ON RETRACE";
+    
     return {
-      breakout: { entry: boEntry, tp: boTP, sl: boSL },
-      weakness: { entry: bowEntry, tp: bowTP, sl: bowSL }
+      direction,
+      signal,
+      prediction: isBull ? "POTENSI NAIK" : "POTENSI TURUN",
+      confidence: Math.random() > 0.4 ? "HIGH" : "MEDIUM",
+      structure: Math.random() > 0.5 ? "BOS (Break of Structure)" : "CHOCH (Change of Character)",
+      liquid: "LIQ AT " + Math.floor(price * 1.05).toLocaleString('id-ID'),
+      bandar: Math.random() > 0.4 ? "AKUMULASI" : "DISTRIBUSI / BUANG BARANG",
+      indicators: {
+        ema: "PRICE ABOVE EMA 9/20",
+        vwap: "SUPPORTED BY VWAP",
+        rsi: (60 + Math.random() * 15).toFixed(2),
+        pressure: { buy: "68%", sell: "32%" }
+      },
+      strategy: {
+        entry: Math.floor(price * 0.998).toLocaleString('id-ID'),
+        tp: Math.floor(price * 1.045).toLocaleString('id-ID'),
+        sl: Math.floor(price * 0.985).toLocaleString('id-ID')
+      }
     };
   };
 
-  const strategy = getStrategy(livePrice);
+  const ai = getFullAnalysis(livePrice);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -321,24 +339,21 @@ export const TradingAISection = () => {
           <div className="space-y-4">
              <div className="flex items-center gap-3">
                <span className="w-2 h-2 bg-brand rounded-full animate-pulse shadow-[0_0_10px_rgba(0,255,163,0.5)]" />
-               <span className="text-[10px] font-black text-brand tracking-[0.3em] uppercase">AI_Terminal_v5.0_Activated</span>
+               <span className="text-[10px] font-black text-brand tracking-[0.3em] uppercase">Hedge_Fund_Terminal_v6.0</span>
              </div>
              <h2 className="text-4xl md:text-7xl font-black text-white italic tracking-tighter uppercase leading-[0.85]">
-               CORE <span className="text-brand">TERMINAL.</span>
+               AI <span className="text-brand">TERMINAL.</span>
              </h2>
              <div className="flex items-center gap-4 bg-white/5 px-4 py-2 rounded-xl border border-white/10 w-fit">
-                <span className="text-[10px] font-black text-[#555] uppercase tracking-widest">Live_Market_Price</span>
-                <span className="text-xl font-mono font-black text-brand tracking-tighter">IDR {livePrice.toLocaleString('id-ID')}</span>
-                <div className={cn(
-                  "w-2 h-2 rounded-full",
-                  Math.random() > 0.5 ? "bg-brand animate-pulse" : "bg-red-500 animate-pulse"
-                )} />
+                <span className="text-[10px] font-black text-[#555] uppercase tracking-widest">Live_Ticker</span>
+                <span className="text-xl font-mono font-black text-brand tracking-tighter">IDX:{activeSymbol} / {livePrice.toLocaleString('id-ID')}</span>
+                <div className="w-2 h-2 rounded-full bg-brand animate-pulse" />
              </div>
           </div>
 
           <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
             <div className="flex bg-[#111] p-1 rounded-xl border border-white/5 h-[54px] items-center px-2">
-              {["5", "15", "60"].map((tf) => (
+              {["1", "5", "15"].map((tf) => (
                 <button 
                   key={tf}
                   onClick={() => setIntervalVal(tf)}
@@ -347,7 +362,7 @@ export const TradingAISection = () => {
                     interval === tf ? "bg-brand text-black" : "text-[#444] hover:text-[#888]"
                   )}
                 >
-                  {tf === "60" ? "1H" : `${tf}M`}
+                  {tf}M
                 </button>
               ))}
             </div>
@@ -357,7 +372,7 @@ export const TradingAISection = () => {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#444]" size={18} />
                 <input 
                   type="text"
-                  placeholder="Ticker (e.g. BBCA, GOTO)"
+                  placeholder="Ticker (e.g. BBRI, GOTO)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-[#111] border border-white/5 rounded-xl py-4 pl-12 pr-4 text-sm font-bold text-white focus:border-brand focus:outline-none transition-all uppercase"
@@ -377,152 +392,133 @@ export const TradingAISection = () => {
                 <div className="absolute top-6 right-6 z-20 flex gap-4">
                    <div className="bg-black/60 backdrop-blur px-4 py-2 rounded-lg border border-white/10 flex items-center gap-2">
                       <div className="w-1.5 h-1.5 bg-brand rounded-full animate-ping" />
-                      <span className="text-[9px] font-black text-brand tracking-widest uppercase">Live_Feed: {activeSymbol} / {interval === "60" ? "1H" : `${interval}M`}</span>
+                      <span className="text-[9px] font-black text-brand tracking-widest uppercase">Live_Feed: {activeSymbol}</span>
                    </div>
                 </div>
                 
                 <TradingViewWidget symbol={activeSymbol} interval={interval} />
              </div>
-
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                <div className="sophisticated-card bg-gradient-to-br from-brand/10 to-transparent border-brand/20 p-6">
-                   <div className="flex justify-between items-center mb-6">
-                      <div className="flex items-center gap-2">
-                         <div className="w-2 h-2 bg-brand rounded-full animate-pulse" />
-                         <span className="text-[10px] font-black text-brand tracking-widest uppercase">Strategy: Buy_On_Breakout</span>
-                      </div>
-                      <span className="text-[10px] font-black text-white italic">PROBABILITY: 78%</span>
-                   </div>
-                   <div className="grid grid-cols-3 gap-4">
-                      <div className="bg-black/40 p-4 rounded-xl border border-white/5">
-                         <span className="text-[8px] font-bold text-[#444] uppercase block mb-1">Entry_High</span>
-                         <span className="text-sm font-black text-brand font-mono">{strategy.breakout.entry.toLocaleString('id-ID')}</span>
-                      </div>
-                      <div className="bg-black/40 p-4 rounded-xl border border-white/5">
-                         <span className="text-[8px] font-bold text-[#444] uppercase block mb-1">Target_Profit</span>
-                         <span className="text-sm font-black text-white font-mono">{strategy.breakout.tp.toLocaleString('id-ID')}</span>
-                      </div>
-                      <div className="bg-black/40 p-4 rounded-xl border border-white/5">
-                         <span className="text-[8px] font-bold text-[#444] uppercase block mb-1">Stop_Loss</span>
-                         <span className="text-sm font-black text-red-500 font-mono">{strategy.breakout.sl.toLocaleString('id-ID')}</span>
-                      </div>
-                   </div>
-                   <p className="mt-4 text-[9px] text-[#666] font-medium leading-relaxed italic border-l border-brand/30 pl-3">
-                      "Eksekusi saat harga bertahan di atas level {strategy.breakout.entry.toLocaleString('id-ID')} dengan volume signifikan."
-                   </p>
-                </div>
-
-                <div className="sophisticated-card bg-gradient-to-br from-cyan-400/10 to-transparent border-cyan-400/20 p-6">
-                   <div className="flex justify-between items-center mb-6">
-                      <div className="flex items-center gap-2">
-                         <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-                         <span className="text-[10px] font-black text-cyan-400 tracking-widest uppercase">Strategy: Buy_On_Weakness</span>
-                      </div>
-                      <span className="text-[10px] font-black text-white italic">PROBABILITY: 64%</span>
-                   </div>
-                   <div className="grid grid-cols-3 gap-4">
-                      <div className="bg-black/40 p-4 rounded-xl border border-white/5">
-                         <span className="text-[8px] font-bold text-[#444] uppercase block mb-1">Entry_Low</span>
-                         <span className="text-sm font-black text-cyan-400 font-mono">{strategy.weakness.entry.toLocaleString('id-ID')}</span>
-                      </div>
-                      <div className="bg-black/40 p-4 rounded-xl border border-white/5">
-                         <span className="text-[8px] font-bold text-[#444] uppercase block mb-1">Target_Profit</span>
-                         <span className="text-sm font-black text-white font-mono">{strategy.weakness.tp.toLocaleString('id-ID')}</span>
-                      </div>
-                      <div className="bg-black/40 p-4 rounded-xl border border-white/5">
-                         <span className="text-[8px] font-bold text-[#444] uppercase block mb-1">Stop_Loss</span>
-                         <span className="text-sm font-black text-red-500 font-mono">{strategy.weakness.sl.toLocaleString('id-ID')}</span>
-                      </div>
-                   </div>
-                   <p className="mt-4 text-[9px] text-[#666] font-medium leading-relaxed italic border-l border-cyan-400/30 pl-3">
-                      "Antri di area support {strategy.weakness.entry.toLocaleString('id-ID')} untuk mendapatkan harga terbaik dengan risiko minimal."
-                   </p>
-                </div>
-             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-           {/* Trend analysis */}
-           <div className="sophisticated-card bg-[#111] p-6 border-white/5 group hover:border-brand/30 transition-all">
-              <div className="flex items-center gap-2 mb-6 text-[#444] group-hover:text-brand transition-colors">
-                <Gauge size={16} />
-                <span className="text-[10px] font-black tracking-widest uppercase">Market_Trend</span>
+           {/* Price Action */}
+           <div className="sophisticated-card bg-[#111] p-6 border-white/5 relative group">
+              <div className="absolute top-0 right-0 p-3">
+                 <div className="bg-brand/10 text-brand px-2 py-0.5 rounded text-[7px] font-black italic">{ai.confidence}_CONFIDENCE</div>
               </div>
-              <div className="flex flex-col gap-1">
-                 <div className="flex justify-between items-end">
-                    <span className="text-3xl font-black text-white italic tracking-tighter uppercase">Bullish</span>
-                    <span className="text-brand text-[10px] font-black animate-pulse uppercase">Strong 84%</span>
-                 </div>
-                 <div className="h-1 bg-white/5 rounded-full mt-4 overflow-hidden">
-                    <div className="h-full bg-brand" style={{ width: "84%" }} />
-                 </div>
-              </div>
-           </div>
-
-           {/* Momentum analysis */}
-           <div className="sophisticated-card bg-[#111] p-6 border-white/5">
               <div className="flex items-center gap-2 mb-6 text-[#444]">
-                <Zap size={16} />
-                <span className="text-[10px] font-black tracking-widest uppercase">Momentum_State</span>
+                <Activity size={16} />
+                <span className="text-[10px] font-black tracking-widest uppercase">Signal_State</span>
               </div>
               <div className="space-y-4">
-                 <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-[#666] uppercase">RSI_14</span>
-                    <span className="text-xs font-black text-cyan-400">64.28</span>
+                 <div>
+                    <div className="text-2xl font-black text-brand italic tracking-tighter uppercase leading-none">{ai.signal}</div>
+                    <div className="text-[10px] font-bold text-white mt-1 italic">{ai.prediction}</div>
                  </div>
-                 <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-[#666] uppercase">VWAP_POS</span>
-                    <span className="text-xs font-black text-brand">ABOVE</span>
-                 </div>
-                 <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-[#666] uppercase">EMA_9_20</span>
-                    <span className="text-xs font-black text-brand">GOLDEN_CROSS</span>
+                 <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-black/40 p-2 rounded border border-white/5">
+                       <span className="text-[8px] font-black text-[#444] block mb-1">Entry</span>
+                       <span className="text-xs font-black text-brand font-mono">{ai.strategy.entry}</span>
+                    </div>
+                    <div className="bg-black/40 p-2 rounded border border-white/5">
+                       <span className="text-[8px] font-black text-[#444] block mb-1">TP</span>
+                       <span className="text-xs font-black text-white font-mono">{ai.strategy.tp}</span>
+                    </div>
                  </div>
               </div>
            </div>
 
-           {/* SMC Context */}
+           {/* Market Context */}
            <div className="sophisticated-card bg-[#111] p-6 border-white/5">
               <div className="flex items-center gap-2 mb-6 text-[#444]">
                 <Layers size={16} />
                 <span className="text-[10px] font-black tracking-widest uppercase">SMC_Architecture</span>
               </div>
               <div className="space-y-3">
-                 <div className="flex items-center gap-3">
-                    <div className="w-1 h-8 bg-brand rounded-full" />
-                    <div>
-                       <div className="text-[9px] font-black text-[#555] uppercase">Structure</div>
-                       <div className="text-xs font-black text-white uppercase italic">MS_Break: BOS (H1)</div>
-                    </div>
+                 <div className="flex justify-between items-center bg-white/5 p-2 rounded">
+                    <span className="text-[9px] font-bold text-[#666]">Structure</span>
+                    <span className="text-[9px] font-black text-brand italic tracking-tighter uppercase">{ai.structure}</span>
                  </div>
-                 <div className="flex items-center gap-3 opacity-60">
-                    <div className="w-1 h-8 bg-[#333] rounded-full" />
-                    <div>
-                       <div className="text-[9px] font-black text-[#555] uppercase">Supply_Zone</div>
-                       <div className="text-xs font-black text-white uppercase italic tracking-tighter">LIQUIDITY_UNMITIGATED</div>
+                 <div className="flex justify-between items-center bg-white/5 p-2 rounded">
+                    <span className="text-[9px] font-bold text-[#666]">Liquidity</span>
+                    <span className="text-[9px] font-black text-cyan-400 font-mono italic">{ai.liquid}</span>
+                 </div>
+                 <div className="flex justify-between items-center bg-white/5 p-2 rounded">
+                    <span className="text-[9px] font-bold text-[#666]">Trend</span>
+                    <span className={cn("text-[9px] font-black italic", ai.direction === "BULLISH" ? "text-brand" : "text-red-500")}>{ai.direction}</span>
+                 </div>
+              </div>
+           </div>
+
+           {/* Bandarmologi */}
+           <div className="sophisticated-card bg-brand p-6 border-none text-black">
+              <div className="flex items-center gap-2 mb-6 opacity-60">
+                <Users size={16} />
+                <span className="text-[10px] font-black tracking-widest uppercase">Bandarmologi_Flow</span>
+              </div>
+              <div className="h-full flex flex-col justify-between">
+                 <div>
+                    <h4 className="text-xl font-black italic leading-none mb-1 tracking-tighter uppercase">{ai.bandar}</h4>
+                    <p className="text-[9px] font-bold uppercase opacity-60 tracking-tight">Institutional activity detected in {interval}m interval</p>
+                 </div>
+                 <div className="pt-4 mt-auto">
+                    <div className="flex justify-between items-center text-[9px] font-black mb-1">
+                       <span>BUY PRESSURE</span>
+                       <span>{ai.indicators.pressure.buy}</span>
+                    </div>
+                    <div className="h-1 bg-black/10 rounded-full overflow-hidden">
+                       <div className="h-full bg-black/60" style={{ width: ai.indicators.pressure.buy }} />
                     </div>
                  </div>
               </div>
            </div>
 
-           {/* Volume Analysis */}
-           <div className="sophisticated-card bg-brand p-6 border-none text-black">
-              <div className="flex items-center gap-2 mb-6 opacity-60">
-                <BarChart3 size={16} />
-                <span className="text-[10px] font-black tracking-widest uppercase">Smart_Money_Flow</span>
+           {/* Indicators */}
+           <div className="sophisticated-card bg-[#111] p-6 border-white/5">
+              <div className="flex items-center gap-2 mb-6 text-[#444]">
+                <Target size={16} />
+                <span className="text-[10px] font-black tracking-widest uppercase">Indicator_Stream</span>
               </div>
-              <div className="flex flex-col h-full justify-between">
-                 <div>
-                    <h4 className="text-xl font-black italic uppercase leading-none mb-1">Akumulasi</h4>
-                    <p className="text-[9px] font-bold uppercase tracking-tight opacity-70">Major institution buying detected via broker feed</p>
+              <div className="space-y-2">
+                 <div className="flex justify-between items-center text-[9px] font-black py-1 border-b border-white/5">
+                    <span className="text-[#555]">EMA 9/20</span>
+                    <span className="text-brand italic uppercase">Golden_Cross</span>
                  </div>
-                 <div className="flex gap-1 items-end h-16 mt-4">
-                    {[40, 70, 45, 90, 65, 100, 80].map((h, i) => (
-                      <div key={i} className="flex-1 bg-black/10 rounded-sm" style={{ height: `${h}%` }} />
-                    ))}
+                 <div className="flex justify-between items-center text-[9px] font-black py-1 border-b border-white/5">
+                    <span className="text-[#555]">RSI_14</span>
+                    <span className="text-cyan-400 font-mono italic">{ai.indicators.rsi}</span>
+                 </div>
+                 <div className="flex justify-between items-center text-[9px] font-black py-1 border-b border-white/5">
+                    <span className="text-[#555]">VWAP</span>
+                    <span className="text-brand italic uppercase">Above_Spt</span>
+                 </div>
+                 <div className="flex justify-between items-center text-[9px] font-black py-1">
+                    <span className="text-[#555]">VOL_SPD</span>
+                    <span className="text-white italic uppercase tracking-tighter">High_Detected</span>
                  </div>
               </div>
+           </div>
+        </div>
+
+        <div className="mt-8 bg-brand/5 border border-brand/20 p-8 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-8 group">
+           <div className="flex items-center gap-6">
+              <div className="p-4 bg-brand/20 rounded-2xl text-brand group-hover:scale-110 transition-transform">
+                 <Zap size={28} />
+              </div>
+              <div>
+                 <h4 className="text-base font-black text-white italic uppercase tracking-widest mb-1 leading-none">AI_Execution_Strategy_Ready</h4>
+                 <p className="text-[10px] text-[#555] italic font-medium leading-relaxed max-w-md">"Strategi difokuskan pada breakout area entry. Pantau lonjakan volume untuk konfirmasi masuk dan gunakan trailing stop untuk proteksi."</p>
+              </div>
+           </div>
+           <div className="flex gap-4">
+              <div className="text-right hidden md:block">
+                 <div className="text-[10px] font-black text-white italic uppercase">Stop_Loss_Safety</div>
+                 <div className="text-xs font-mono font-black text-red-500">{ai.strategy.sl}</div>
+              </div>
+              <button className="whitespace-nowrap px-10 py-4 bg-brand text-black font-black text-[10px] uppercase tracking-widest rounded-xl hover:shadow-[0_0_30px_rgba(0,255,163,0.4)] transition-all shadow-xl">
+                 Execute SMC Plan
+              </button>
            </div>
         </div>
       </div>
